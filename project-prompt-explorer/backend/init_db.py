@@ -10,7 +10,7 @@ Initialize database referenced in DATABASE and load data from JSON file referenc
 """
 def init_db():
     try:
-        database_connection = get_db()
+        database_connection = get_db_connection()
         database_cursor = database_connection.cursor()
 
         # Drop tables to update schema in a clean database

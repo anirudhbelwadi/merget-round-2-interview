@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 
@@ -60,7 +60,7 @@ def get_tree():
                 "finalIntegration": None,
                 "prompts": []
             }
-            error_code = 601
+            error_code = 404
             error_message = "No project found in the database"
         database_connection.close()
         return make_response(body=result, error_code=error_code, error_message=error_message)
@@ -97,7 +97,7 @@ def get_prompt(prompt_id):
             }
         else:
             result = None
-            error_code = 602
+            error_code = 404
             error_message = "Prompt not found"
         database_connection.close()
         return make_response(body=result, error_code=error_code, error_message=error_message)
@@ -142,7 +142,7 @@ def get_prompt_nodes(prompt_id):
             }
         else:
             result = None
-            error_code = 602
+            error_code = 404
             error_message = "Prompt not found"
         
         database_connection.close()
@@ -161,8 +161,59 @@ POST /prompts/:id — add a prompt
 """
 @app.route("/prompts/<int:prompt_id>", methods=["POST"])
 def add_prompt(prompt_id):
-    print(f"Adding prompt under parent prompt ID: {prompt_id}")
-    pass
+    try:
+        data = request.json
+        if not data or "title" not in data or not data["title"].strip() or "description" not in data or not data["description"].strip():
+            return make_response(body=None, error_code=400, error_message="Title and description are required")
+        
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Prompt added successfully"
+
+        parent_id = prompt_id if prompt_id > 0 else None
+        project_id = None
+        if parent_id is not None:
+            parent_row = database_cursor.execute(
+                "SELECT prompt_id, project_id FROM PROMPTS WHERE prompt_id = ?",
+                (parent_id,)
+            ).fetchone()
+            if not parent_row:
+                database_connection.close()
+                return make_response(body=None, error_code=404, error_message="Parent prompt not found")
+            project_id = parent_row["project_id"]
+        else:
+            return make_response(body=None, error_code=400, error_message="Parent prompt ID must be greater than 0")
+        
+        # Check if parent prompt already has a child prompt
+        child_row = database_cursor.execute(
+            "SELECT prompt_id FROM PROMPTS WHERE parent_prompt_id = ?",
+            (parent_id,)
+        ).fetchone()
+        if child_row:
+            result = None
+            error_message = "Parent prompt already has a child prompt"
+            error_code = 400
+        else:
+            # Insert new prompt
+            database_cursor.execute(
+                "INSERT INTO PROMPTS (title, description, parent_prompt_id, project_id) VALUES (?, ?, ?, ?)",
+                (data["title"], data["description"], parent_id, project_id)
+            )
+            new_prompt_row_id = database_cursor.lastrowid
+            new_prompt_id = database_cursor.execute(
+                "SELECT prompt_id FROM PROMPTS WHERE rowid = ?",
+                (new_prompt_row_id,)
+            ).fetchone()["prompt_id"]
+            result = {
+                "id": new_prompt_id
+            }
+        database_connection.commit()
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error adding prompt: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 POST /prompts/:id/nodes — add a node for a prompt
@@ -215,7 +266,7 @@ def get_prompt_notes(prompt_id):
             }
         else:
             result = None
-            error_code = 602
+            error_code = 404
             error_message = "Prompt not found"
         
         database_connection.close()
