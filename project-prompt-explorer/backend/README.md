@@ -6,6 +6,8 @@
 #### ER Diagram
 <img src="./documentation_assets/erd.png">
 
+Find the UML <a href="#uml-for-er-diagram">here</a>
+
 #### DDL queries
 
 Table: PROJECTS
@@ -51,4 +53,52 @@ CREATE TABLE IF NOT EXISTS NOTES (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (prompt_id) REFERENCES PROMPTS(prompt_id) ON DELETE CASCADE
 )
+```
+
+### Appendix
+#### UML for ER Diagram
+```
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity PROJECTS {
+  + project_id : INTEGER <<PK>>
+  --
+  name : TEXT
+  main_request : TEXT
+  final_integration : TEXT
+}
+
+entity PROMPTS {
+  + prompt_id : INTEGER <<PK>>
+  --
+  title : TEXT
+  description : TEXT
+  parent_prompt_id : INTEGER <<FK>>  
+  project_id : INTEGER <<FK>>
+}
+
+entity NODES {
+  + node_id : INTEGER <<PK>>
+  --
+  name : TEXT
+  action : TEXT
+  prompt_id : INTEGER <<FK>>
+}
+
+entity NOTES {
+  + note_id : INTEGER <<PK>>
+  --
+  content : TEXT
+  created_at : TIMESTAMP
+  prompt_id : INTEGER <<FK>>
+}
+
+PROJECTS "(1,1)  " -- "(0,n)  " PROMPTS : " has"
+PROMPTS  "  (1,1)" -- "(0,n)  " NODES   : " contains"
+PROMPTS  "(1,1)  " -- "(0,n)" NOTES   : " takes"
+PROMPTS  "(0,1)   " -- "  (0,1)" PROMPTS : parent_of
+
+@enduml
 ```
