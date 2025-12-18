@@ -222,12 +222,46 @@ POST /prompts/:id/nodes — add a node for a prompt
 - The request body should contain the name and action for the new node
 - If successful, the response will include the unique ID of the newly created node
 - If the prompt ID does not exist, the request will be rejected
-- The new node will be linked to the last available node in the prompt's node list
+- The new node will be linked to the last available node in the prompt's node list, as the ID of the newly created node is auto-incremented
 """
 @app.route("/prompts/<int:prompt_id>/nodes", methods=["POST"])
 def add_prompt_node(prompt_id):
-    print(f"Adding node for parent prompt ID: {prompt_id}")
-    pass
+    try:
+        data = request.json
+        if not data or "name" not in data or not data["name"].strip() or "action" not in data or not data["action"].strip():
+            return make_response(body=None, error_code=400, error_message="Name and action are required")
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Node added successfully"
+        prompt_row = database_cursor.execute(
+            "SELECT * FROM PROMPTS WHERE prompt_id = ?",
+            (prompt_id,)
+        ).fetchone()
+        if not prompt_row:
+            error_code = 404
+            error_message = "Prompt not found"
+            result = None
+        else:
+            # Insert new node
+            database_cursor.execute(
+                "INSERT INTO NODES (prompt_id, name, action) VALUES (?, ?, ?)",
+                (prompt_id, data["name"], data["action"])
+            )
+            new_node = database_cursor.execute(
+                "SELECT node_id FROM NODES WHERE prompt_id = ? AND name = ? ORDER BY rowid DESC LIMIT 1",
+                (prompt_id, data["name"])
+            ).fetchone()
+            new_node_id = new_node["node_id"]
+            result = {
+                "id": new_node_id
+            }
+        database_connection.commit()
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error adding prompt node: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 GET /prompts/:id/notes — get notes for a prompt
@@ -286,9 +320,45 @@ POST /prompts/:id/notes — add a note for a prompt
 """
 @app.route("/prompts/<int:prompt_id>/notes", methods=["POST"])
 def add_prompt_note(prompt_id):
-    print(f"Adding note for prompt ID: {prompt_id}")
-    pass
+    try:
+        data = request.json
+        if not data or "content" not in data or not data["content"].strip():
+            return make_response(body=None, error_code=400, error_message="Content is required")
 
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Note added successfully"
+
+        prompt_row = database_cursor.execute(
+            "SELECT * FROM PROMPTS WHERE prompt_id = ?",
+            (prompt_id,)
+        ).fetchone()
+
+        if not prompt_row:
+            error_code = 404
+            error_message = "Prompt not found"
+            result = None
+        else:
+            # Insert new note
+            database_cursor.execute(
+                "INSERT INTO NOTES (prompt_id, content) VALUES (?, ?)",
+                (prompt_id, data["content"])
+            )
+            new_note = database_cursor.execute(
+                "SELECT note_id FROM NOTES WHERE prompt_id = ? AND content = ? ORDER BY rowid DESC LIMIT 1",
+                (prompt_id, data["content"])
+            ).fetchone()
+            new_note_id = new_note["note_id"]
+            result = {
+                "id": new_note_id
+            }
+        database_connection.commit()
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error adding prompt note: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 if __name__ == "__main__":
     # This will create the database file and tables if they don't exist
