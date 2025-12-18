@@ -67,7 +67,7 @@
         },
         "description": "",
         "url": {
-          "raw": "http://127.0.0.1:5001/prompts/2/notes",
+          "raw": "http://127.0.0.1:5001/prompts/2/nodes",
           "protocol": "http",
           "host": [
             "127",
