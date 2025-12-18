@@ -1,7 +1,10 @@
 ## Backend Server
 ### Persistence Layer
 - Technology chosen: SQLite
-- Command to initialize and seed the Database: `python3 init_db.py`
+- Command to initialize and seed the Database:
+```bash
+python3 init_db.py # On Windows: py init_db.py
+```
 
 #### ER Diagram
 <img src="./documentation_assets/erd.png">
@@ -54,6 +57,36 @@ CREATE TABLE IF NOT EXISTS NOTES (
     FOREIGN KEY (prompt_id) REFERENCES PROMPTS(prompt_id) ON DELETE CASCADE
 )
 ```
+
+### Backend Server
+#### Create and activate a virtual environment
+```bash
+python3 -m venv venv # On Windows: py -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+#### Install all the dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### Start the Flask Server
+```bash
+python app.py
+```
+The backend will run on `http://localhost:5001`
+
+#### API Endpoints
+
+##### Endpoints in given specs
+- `GET /tree` - returns the prompt tree
+- `GET /prompts/:id` - returns a single prompt with details
+- `GET /prompts/:id/nodes` - returns the nodes for a prompt
+- `POST /prompts/:id` - add a prompt
+- `POST /prompts/:id/nodes` - add a node for a prompt
+
+#### Extra Endpoints added by me
+- `GET /prompts/:id/notes` - Get all notes for a prompt
+- `POST /prompts/:id/notes` - Add a note to a prompt
 
 ### Appendix
 #### UML for ER Diagram
