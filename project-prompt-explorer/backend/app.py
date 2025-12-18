@@ -1,11 +1,24 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 import os
 
-from init_db import init_db
+from init_db import init_db, get_db_connection
 
 app = Flask(__name__)
 CORS(app)
+
+DEFAULT_RESPONSE_BODY = {
+    "errorCode": None,
+    "errorMessage": None,
+}
+
+def make_response(body=None, error_code=None, error_message=None):
+    response = DEFAULT_RESPONSE_BODY.copy()
+    if body:
+        response.update(body)
+    response["errorCode"] = error_code
+    response["errorMessage"] = error_message
+    return jsonify(response)
 
 """
 GET /tree — returns the prompt tree
@@ -15,7 +28,45 @@ GET /tree — returns the prompt tree
 """
 @app.route("/tree", methods=["GET"])
 def get_tree():
-    pass
+    try:
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Success"
+
+        # Get project info
+        # As per the shared JSON file, there is only one project at the top level
+        # For multiple projects, this logic would need to be adjusted as the spec changes
+        project_row = database_cursor.execute("SELECT * FROM projects LIMIT 1").fetchone()
+        project = dict(project_row) if project_row else None
+
+        if project:
+            # Get all prompts IDs for the project in chain order
+            prompt_rows = database_cursor.execute(
+                "SELECT prompt_id FROM PROMPTS WHERE project_id = ? ORDER BY prompt_id",
+                (project["project_id"],)
+            ).fetchall()
+            prompt_ids = [row["prompt_id"] for row in prompt_rows]
+            result = {
+                'project': project['name'],
+                'mainRequest': project['main_request'],
+                'finalIntegration': project.get('final_integration'),
+                'prompts': prompt_ids
+            }
+        else:
+            result = {
+                'project': None,
+                'mainRequest': None,
+                'finalIntegration': None,
+                'prompts': []
+            }
+            error_code = 601
+            error_message = "No project found in the database"
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error fetching tree data: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 GET /prompts/:id — returns a single prompt with details
