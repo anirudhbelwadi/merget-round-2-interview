@@ -48,17 +48,17 @@ def get_tree():
             ).fetchall()
             prompt_ids = [row["prompt_id"] for row in prompt_rows]
             result = {
-                'project': project['name'],
-                'mainRequest': project['main_request'],
-                'finalIntegration': project.get('final_integration'),
-                'prompts': prompt_ids
+                "project": project["name"],
+                "mainRequest": project["main_request"],
+                "finalIntegration": project.get("final_integration"),
+                "prompts": prompt_ids
             }
         else:
             result = {
-                'project': None,
-                'mainRequest': None,
-                'finalIntegration': None,
-                'prompts': []
+                "project": None,
+                "mainRequest": None,
+                "finalIntegration": None,
+                "prompts": []
             }
             error_code = 601
             error_message = "No project found in the database"
@@ -76,8 +76,34 @@ GET /prompts/:id — returns a single prompt with details
 """
 @app.route("/prompts/<int:prompt_id>", methods=["GET"])
 def get_prompt(prompt_id):
-    print(f"Fetching prompt with ID: {prompt_id}")
-    pass
+    try:
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Success"
+
+        prompt_row = database_cursor.execute(
+            "SELECT * FROM PROMPTS WHERE prompt_id = ?",
+            (prompt_id,)
+        ).fetchone()
+
+        if prompt_row:
+            prompt = dict(prompt_row)
+            result = {
+                "title": prompt["title"],
+                "description": prompt["description"],
+                "parentPromptId": prompt["parent_prompt_id"],
+                "projectId": prompt["project_id"]
+            }
+        else:
+            result = None
+            error_code = 602
+            error_message = "Prompt not found"
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error fetching prompt data: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 GET /prompts/:id/nodes - returns the nodes for a prompt
@@ -87,8 +113,43 @@ GET /prompts/:id/nodes - returns the nodes for a prompt
 """
 @app.route("/prompts/<int:prompt_id>/nodes", methods=["GET"])
 def get_prompt_nodes(prompt_id):
-    print(f"Fetching nodes for prompt ID: {prompt_id}")
-    pass
+    try:
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Success"
+
+        prompt_row = database_cursor.execute(
+            "SELECT * FROM PROMPTS WHERE prompt_id = ?",
+            (prompt_id,)
+        ).fetchone()
+
+        if prompt_row:
+            node_rows = database_cursor.execute(
+                "SELECT * FROM NODES WHERE prompt_id = ? ORDER BY node_id",
+                (prompt_id,)
+            ).fetchall()
+            nodes = []
+            for row in node_rows:
+                node = {
+                    "nodeId": row["node_id"],
+                    "name": row["name"],
+                    "action": row["action"],
+                }
+                nodes.append(node)
+            result = {
+                "nodes": nodes
+            }
+        else:
+            result = None
+            error_code = 602
+            error_message = "Prompt not found"
+        
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error fetching prompt nodes: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 POST /prompts/:id — add a prompt
@@ -125,8 +186,43 @@ GET /prompts/:id/notes — get notes for a prompt
 """
 @app.route("/prompts/<int:prompt_id>/notes", methods=["GET"])
 def get_prompt_notes(prompt_id):
-    print(f"Fetching notes for prompt ID: {prompt_id}")
-    pass
+    try:
+        database_connection = get_db_connection()
+        database_cursor = database_connection.cursor()
+        error_code = 200
+        error_message = "Success"
+
+        prompt_row = database_cursor.execute(
+            "SELECT * FROM PROMPTS WHERE prompt_id = ?",
+            (prompt_id,)
+        ).fetchone()
+
+        if prompt_row:
+            note_rows = database_cursor.execute(
+                "SELECT * FROM NOTES WHERE prompt_id = ? ORDER BY created_at DESC",
+                (prompt_id,)
+            ).fetchall()
+            notes = []
+            for row in note_rows:
+                note = {
+                    "noteId": row["note_id"],
+                    "content": row["content"],
+                    "createdAt": row["created_at"],
+                }
+                notes.append(note)
+            result = {
+                "notes": notes
+            }
+        else:
+            result = None
+            error_code = 602
+            error_message = "Prompt not found"
+        
+        database_connection.close()
+        return make_response(body=result, error_code=error_code, error_message=error_message)
+    except Exception as e:
+        print(f"Error fetching prompt notes: {e}")
+        return make_response(body=None, error_code=500, error_message="Internal Server Error")
 
 """
 POST /prompts/:id/notes — add a note for a prompt
