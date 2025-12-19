@@ -1,0 +1,126 @@
+.tree-view {
+    max-width: 100%;
+}
+
+.tree-node {
+    margin-bottom: 8px;
+}
+
+.tree-node-content {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.tree-node-content:hover {
+    background: #e9ecef;
+    border-color: #667eea;
+    transform: translateX(2px);
+}
+
+.tree-node-content.selected {
+    background: #667eea;
+    color: white;
+    border-color: #5568d3;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.tree-node-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tree-node-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    color: inherit;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.tree-node-toggle:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.tree-node-content.selected .tree-node-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tree-node-spacer {
+    width: 18px;
+    display: inline-block;
+}
+
+.tree-node-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.tree-node-count {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-left: auto;
+}
+
+.tree-node-description {
+    margin-top: 6px;
+    font-size: 13px;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+.tree-node-content.selected .tree-node-description {
+    opacity: 0.9;
+}
+
+.tree-node-children {
+    margin-top: 4px;
+    margin-left: 20px;
+    border-left: 2px solid #e0e0e0;
+    padding-left: 10px;
+}
+
+.tree-node-child {
+    margin-bottom: 6px;
+}
+
+.tree-node-child-content {
+    padding: 10px 12px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.tree-node-child-content:hover {
+    border-color: #667eea;
+    box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
+}
+
+.tree-node-child-name {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.tree-node-child-action {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+    margin-top: 4px;
+}

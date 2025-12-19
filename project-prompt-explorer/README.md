@@ -29,6 +29,13 @@ project-prompt-explorer/
 │   └── projects.db         # SQLite database (created on first run)
 │   └── prompt_list.json    # Initially shared JSON (used for seeding the database)
 └── frontend/
+    ├── src/
+    │   ├── components/     # React components
+    │   ├── services/       # API service layer
+    │   ├── App.js          # Main app component
+    │   └── index.js        # Entry point
+    ├── public/
+    └── package.json        # Node dependencies
 ```
 
 ## Notes & Asssumption
