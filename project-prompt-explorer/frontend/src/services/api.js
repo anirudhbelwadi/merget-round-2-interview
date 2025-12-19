@@ -14,12 +14,12 @@ const api = axios.create({
 // Helper to extract body from backend response wrapper
 const extractBody = (response) => {
     const data = response.data;
-    if (data.errorCode !== 200 && data.errorCode !== null) {
-        throw new Error(data.errorMessage || "API request failed");
+    if (data.responseCode !== 200 && data.responseCode !== null) {
+        throw new Error(data.responseMessage || "API request failed");
     }
 
-    // Extract the actual body (everything except errorCode and errorMessage)
-    const { errorCode, errorMessage, ...body } = data;
+    // Extract the actual body (everything except responseCode and responseMessage)
+    const { responseCode, responseMessage, ...body } = data;
     return body;
 };
 
