@@ -132,7 +132,6 @@ def get_prompt_nodes(prompt_id):
             nodes = []
             for row in node_rows:
                 node = {
-                    "nodeId": row["node_id"],
                     "name": row["name"],
                     "action": row["action"],
                 }
@@ -290,7 +289,6 @@ def get_prompt_notes(prompt_id):
             notes = []
             for row in note_rows:
                 note = {
-                    "noteId": row["note_id"],
                     "content": row["content"],
                     "createdAt": row["created_at"],
                 }
